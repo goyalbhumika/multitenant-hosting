@@ -20,8 +20,9 @@ func CreateAppHandler(serviceRegistry *service.Registry) http.HandlerFunc {
 		if err != nil {
 			log.Printf("Error decoding the request %s", err.Error())
 			w.WriteHeader(http.StatusBadRequest)
+			return
 		}
-		err = serviceRegistry.CreateAppSvc.CreateApp(r.Context(), req.Name)
+		resp, err := serviceRegistry.CreateAppSvc.CreateApp(r.Context(), req.Name, req.DeployType)
 		if err != nil {
 			switch err {
 			case errors.ErrAppAlreadyExists:
@@ -31,7 +32,11 @@ func CreateAppHandler(serviceRegistry *service.Registry) http.HandlerFunc {
 				w.Header().Set(HeaderErrormessage, err.Error())
 				w.WriteHeader(http.StatusServiceUnavailable)
 			}
+			return
 		}
+		w.WriteHeader(http.StatusCreated)
+		body, _ := json.Marshal(resp)
+		w.Write(body)
 		return
 	}
 }

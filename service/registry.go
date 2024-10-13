@@ -11,7 +11,9 @@ type Registry struct {
 }
 
 func NewRegistry(store store.Store) *Registry {
-	deployAppSvc := service.NewDeployAppService()
+	localDeploySvc := service.NewlocalDeploySvc(9000)
+	cloudDeploySvc := service.NewcloudDeploySvc()
+	deployAppSvc := service.NewDeployAppService(localDeploySvc, cloudDeploySvc)
 	return &Registry{
 		CreateAppSvc: NewCreateAppService(store, deployAppSvc),
 		DeployAppSvc: deployAppSvc,

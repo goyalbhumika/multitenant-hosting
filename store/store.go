@@ -8,6 +8,9 @@ import (
 type Store interface {
 	CreateApp(app *domain.App) error
 	GetApp(name string) *domain.App
+	UpdateAppState(status string, name string) error
+	UpdateAppPort(port int, name string) error
+	UpdateAppDNS(dns string, name string) error
 }
 
 type store struct {
@@ -28,4 +31,19 @@ func (s *store) CreateApp(app *domain.App) error {
 
 func (s *store) GetApp(name string) *domain.App {
 	return s.apps[name]
+}
+
+func (s *store) UpdateAppState(status string, name string) error {
+	s.apps[name].Status = status
+	return nil
+}
+
+func (s *store) UpdateAppDNS(dns string, name string) error {
+	s.apps[name].DNS = &domain.DNS{ARecord: dns}
+	return nil
+}
+
+func (s *store) UpdateAppPort(port int, name string) error {
+	s.apps[name].Port = port
+	return nil
 }

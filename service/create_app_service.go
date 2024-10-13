@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"multitenant-hosting/constants"
 	"multitenant-hosting/domain"
 	"multitenant-hosting/errors"
 	service "multitenant-hosting/service/deploy"
@@ -10,7 +11,7 @@ import (
 )
 
 type CreateAppService interface {
-	CreateApp(ctx context.Context, name string) error
+	CreateApp(ctx context.Context, name, deployType string) (*domain.AppResponse, error)
 }
 
 type createAppService struct {
@@ -22,17 +23,34 @@ func NewCreateAppService(store store.Store, deployAppSvc service.DeployAppServic
 	return &createAppService{store: store, deployAppSvc: deployAppSvc}
 }
 
-func (svc *createAppService) CreateApp(ctx context.Context, name string) error {
+func (svc *createAppService) CreateApp(ctx context.Context, name string, deployType string) (*domain.AppResponse, error) {
+	if app := svc.store.GetApp(name); app != nil {
+		return nil, errors.ErrAppAlreadyExists
+	}
 	app := &domain.App{
 		Name:      name,
 		ID:        name,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
+		Status:    constants.StatusCreated,
 	}
-	err := svc.store.CreateApp(app)
+
+	//Create the entry in the database
+	svc.store.CreateApp(app)
+
+	// Deploy the app and create DNS endpoint
+	deployResp, err := svc.deployAppSvc.DeployApp(ctx, name, deployType)
 	if err != nil {
-		return errors.ErrAppAlreadyExists
+		svc.store.UpdateAppState(constants.StatusDeploymentFailed, name)
+		return nil, err
 	}
-	err = svc.deployAppSvc.DeployApp(ctx, name)
-	return err
+	svc.store.UpdateAppState(constants.StatusDeployed, name)
+	svc.store.UpdateAppDNS(deployResp.DNS, name)
+	svc.store.UpdateAppPort(deployResp.Port, name)
+	resp := &domain.AppResponse{
+		Name: name,
+		Port: deployResp.Port,
+		DNS:  deployResp.DNS,
+	}
+	return resp, err
 }
