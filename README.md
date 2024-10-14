@@ -7,9 +7,9 @@
 
 ### How to run locally?
 
-export NETLIFY_TOKEN="Personal access token"
-export INDEX_FILE_PATH="path to idex file that returns hello world"
-`go run main.go`
+1. export NETLIFY_TOKEN="Personal access token"
+2. export INDEX_FILE_PATH="path to idex file that returns hello world"
+3. Run using `go run main.go`
 
 This will run the platform server
 
