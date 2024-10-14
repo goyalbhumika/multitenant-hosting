@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"multitenant-hosting/config"
 	"net/http"
 	"os"
 
@@ -11,6 +12,7 @@ import (
 )
 
 func main() {
+	config.SetConfig()
 	store := repository.NewStore()
 	registry := service.NewRegistry(store)
 	http.HandleFunc("/v1/apps", handlers.CreateAppHandler(registry))

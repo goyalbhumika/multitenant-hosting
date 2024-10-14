@@ -69,7 +69,6 @@ func TestCreateAppHandler(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 		assert.Equal(t, error2.ErrAppAlreadyExists.Error(), w.Header().Get(handlers.HeaderErrormessage))
 
-		// Assert that the mock was called as expected
 		mockCreateAppSvc.AssertExpectations(t)
 	})
 
